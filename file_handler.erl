@@ -4,24 +4,25 @@
 start(DirName) ->
 	Pid = spawn(fun() -> loop() end),
 	register(file_handler, Pid),
-	create_dir({"./" ++ DirName, client}).
+	create_dir("./" ++ DirName),
+	ok.
 
 loop() ->
 	receive
 		{From,{create_dir, DirName}} ->
-			From ! create_dir({DirName, server}),
+			From ! {create_dir(DirName, server)},
 			loop()		
 	end.
-create_dir({DirName,client}) ->
-	rpc(file_handler,{create_dir,DirName});
-create_dir({DirName,server}) ->
+create_dir(DirName) ->
+	rpc({create_dir,DirName}).
+create_dir(DirName,server) ->
 	catch file:make_dir(DirName),
 	file_created.
 
-rpc(Pid,Msg) ->
-		Pid ! {self(),Msg},
+rpc(Msg) ->
+		file_handler ! {self(),Msg},
 	       	receive 
-			{Pid,Reply} ->
+			Reply ->
 				Reply
 		end.	       
 		

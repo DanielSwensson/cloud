@@ -1,12 +1,11 @@
 -module(cloud_server).
 -compile(export_all).
 
-
 %Start udp server
 start() ->
 	{ok, Socket} = gen_udp:open(8080,[binary]),
-	file_handler:start("files"),
 	io:format("Server has opened socket: ~p ~n",[Socket]),
+	ok = file_handler:start(dir()),
 	loop(Socket).
 
 loop(Socket) ->
@@ -19,5 +18,16 @@ loop(Socket) ->
 			loop(Socket)
 	end.
 
-%perform_request({join, UserName}, Req) ->
-	
+
+perform_request({join, UserName}, _Req) ->
+	case get(UserName) of 
+		undefined ->
+			put(UserName,{name, UserName}),
+			file_handler:create_dir(dir() ++ UserName);
+		_Else ->
+			"Welcome Back " ++ UserName
+	end;
+
+perform_request(_,_Req) ->other.
+dir() ->
+	"files/".
