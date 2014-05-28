@@ -14,8 +14,8 @@ loop(Socket) ->
 		{udp, Socket, Host, Port, Bin} = Req ->
 			ReceivedData = binary_to_term(Bin),
 			io:format("Server received: ~p ~n ", [Bin]),
-		%	Response = perform_request(ReceivedData,Req),
-			%gen_udp:send(Socket,Host,Port,term_to_binary(Response)),
+			Response = perform_request(ReceivedData,Req),
+			gen_udp:send(Socket,Host,Port,term_to_binary(Response)),
 			loop(Socket)
 	end.
 
