@@ -1,9 +1,13 @@
 -module(cloud_server).
--compile(export_all).
+-export([start/1]).
 
-%Start udp server
-start() ->
-	{ok, Socket} = gen_udp:open(8080,[binary]),
+start(Port) ->
+	catch unregister(cloud_server),	
+	Pid = spawn(fun() -> server_start(Port) end),
+	register(cloud_server, Pid).
+
+server_start(Port) ->
+	{ok, Socket} = gen_udp:open(Port,[binary]),
 	io:format("Server has opened socket: ~p ~n",[Socket]),
 	ok = file_handler:start(dir()),
 	loop(Socket).
@@ -28,6 +32,6 @@ perform_request({join, UserName}, _Req) ->
 			"Welcome Back " ++ UserName
 	end;
 
-perform_request(_,_Req) ->other.
+perform_request(_,_Req) -> other.
 dir() ->
 	"files/".

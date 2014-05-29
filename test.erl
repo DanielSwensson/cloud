@@ -2,6 +2,8 @@
 -export([test/0]).
 
 test() ->
+	cloud_server:start(8080),
+	timer:sleep(500),
 	{ok, Socket} = gen_udp:open(0, [binary]),
 	io:format("opened socket: ~p ~n",[Socket]),
 	ok = gen_udp:send(Socket,"localhost",8080,term_to_binary({join,"Daniel"})),
