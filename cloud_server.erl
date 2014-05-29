@@ -16,12 +16,19 @@ loop(Socket) ->
 	receive 
 		{udp, Socket, Host, Port, Bin} = Req ->
 			ReceivedData = binary_to_term(Bin),
-			io:format("Server received: ~p ~n ", [Bin]),
+			io:format("Server received: ~p ~n ", [ReceivedData]),
 			Response = perform_request(ReceivedData,Req),
 			gen_udp:send(Socket,Host,Port,term_to_binary(Response)),
 			loop(Socket)
 	end.
 
+perform_request({create_file, UserName, FileName}, _Req) ->
+	case get(UserName) of 
+		{name, UserName} ->
+			file_handler:create_file(dir() ++ UserName ++ "/",FileName);	
+		_Else ->
+			{error, "Unknown User: " ++ UserName}
+	end;		
 
 perform_request({join, UserName}, _Req) ->
 	case get(UserName) of 
@@ -29,9 +36,10 @@ perform_request({join, UserName}, _Req) ->
 			put(UserName,{name, UserName}),
 			file_handler:create_dir(dir() ++ UserName);
 		_Else ->
-			"Welcome Back " ++ UserName
+			{user_exists, "Welcome Back " ++ UserName}
 	end;
 
 perform_request(_,_Req) -> other.
 dir() ->
 	"files/".
+
